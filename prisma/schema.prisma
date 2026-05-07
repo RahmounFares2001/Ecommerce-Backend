@@ -4,8 +4,8 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma"
 }
 
 datasource db {
@@ -393,6 +393,8 @@ model DiscountCode {
   expiresAt      DateTime?    @map("expires_at") @db.Timestamptz()
   isActive       Boolean      @default(true) @map("is_active")
 
+  category       Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  product        Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
   orders         Order[]
 
   @@map("discount_codes")
@@ -403,6 +405,7 @@ model DiscountCode {
 model Review {
   id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   productId   String     @map("product_id") @db.Uuid
+
   userId      String     @map("user_id") @db.Uuid  // required — no anonymous reviews
   orderItemId String?    @unique @map("order_item_id") @db.Uuid
   rating      Int        @db.SmallInt              // 1–5, enforce in app layer
