@@ -1,0 +1,13 @@
+export const userBaseSelect = {
+    id: true,
+    email: true,
+    firstName: true,
+    lastName: true,
+    phone: true,
+    preferredCurrency: true,
+    preferredLocale: true,
+    role: true,
+    isActive: true,
+    createdAt: true,
+    updatedAt: true,
+} as const;
