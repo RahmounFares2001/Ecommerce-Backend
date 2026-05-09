@@ -2,7 +2,7 @@ import { SupportedCurrency, SupportedLocale, UserRole } from "@prisma/client";
 import { Transform } from "class-transformer";
 import { IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MinLength } from "class-validator";
 
-export class CreateUserDto {
+export class RegisterDto {
     @IsEmail()
     @IsNotEmpty()
     @Transform(({value}) => value.toLowerCase().trim())
@@ -18,15 +18,15 @@ export class CreateUserDto {
 
     @IsOptional()
     @IsString()
-    firstName?: string;
+    firstName!: string | undefined;
 
     @IsOptional()
     @IsString()
-    lastname?: string;
+    lastName!: string | undefined;
 
     @IsOptional()
     @IsString()
     @Matches(/^\+?[0-9\s-]{8,15}$/, { message: 'Invalid phone number format' })
-    phone?: number;
+    phone!: string | undefined;
     
 }
