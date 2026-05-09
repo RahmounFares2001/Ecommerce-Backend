@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, Res, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Patch, Post, Query, Req, Res, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiOperation } from '@nestjs/swagger';
 import { RegisterDto } from './dto/register.dto';
@@ -7,6 +7,11 @@ import type { Request, Response } from 'express';
 import { getSessionMeta } from 'src/common/utils/session.meta.util';
 import { RefreshToken } from 'src/common/decorators/refresh-token.decorator';
 import { setRefreshTokenCookies } from 'src/common/helpers/set-refresh-token-cookies';
+import { LoginDto } from './dto/login.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -29,7 +34,7 @@ export class AuthController {
       sessionMeta
     );
 
-    // refresh token to cookies
+    // store refresh token cookies
     setRefreshTokenCookies(res, result.refreshToken)
 
     return {
@@ -39,6 +44,30 @@ export class AuthController {
   }
 
   // login
+  @Post('login')
+  @ApiOperation({summary: 'Login user'})
+  async login(
+    @Body() loginDto: LoginDto,
+    @Req() req: Request,
+    @Res({passthrough: true}) res: Response): Promise<AuthResponseDto> {
+    
+    // get session meta
+    const sessionMeta = getSessionMeta(req);
+
+    const result = await this.authService.login(
+      loginDto,
+      sessionMeta
+    );
+
+    // store refresh token cookies
+    setRefreshTokenCookies(res, result.refreshToken);
+
+    return {
+      accessToken: result.accessToken,
+      user: result.user
+    }
+
+  }
 
   // logout
   @Post('logout')
@@ -56,22 +85,56 @@ export class AuthController {
   }
 
   // refresh access token
-  @Post('refreshToken')
+  @Post('refresh-token')
   @ApiOperation({summary: 'Refresh user token'})
   async refreshToken(
-    @RefreshToken() refreshToken: string,
+    @RefreshToken() oldRefreshToken: string,
     @Res({passthrough: true}) res: Response
-  ) {
-    return await this.authService.refreshToken(refreshToken);
+  ): Promise<AuthResponseDto> {
+    
+    const result = await this.authService.refreshToken(oldRefreshToken);
+
+    // store refresh token cookies
+    setRefreshTokenCookies(res, result.refreshToken);
+
+    return {
+      accessToken: result.accessToken,
+      user: result.user
+    }
   }
 
   // change password
-
-  // forgot password
-
-  // reset password
+  @Patch('change-password')
+  @ApiOperation({summary: 'Change user password'})
+  async changePassword(
+    @Body() changePasswordDto: ChangePasswordDto,
+    @CurrentUser('id') userId: string
+  ) {
+    return await this.authService.changePassword(userId, changePasswordDto);
+  }
 
   // verify email
+  @Patch('verify-email')
+  @ApiOperation({summary: 'Verify email user'})
+  async verifyEmail(@Query('token') token: string) {
+    return await this.authService.verifyEmail(token);
+  }
 
-  // verify phone
+  // forgot password
+  @Post('forgot-password')
+  @ApiOperation({summary: 'Forgot password user'})
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return await this.authService.forgotPassword(forgotPasswordDto);
+  }
+
+  // reset password
+  @Patch('reset-password')
+  @ApiOperation({summary: 'Reset password user'})
+  async resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto
+  ) {
+    return await this.authService.resetPassword(resetPasswordDto);
+  }
+
+
 }

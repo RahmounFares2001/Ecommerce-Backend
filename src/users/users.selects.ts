@@ -7,6 +7,8 @@ export const userBaseSelect = {
     preferredCurrency: true,
     preferredLocale: true,
     role: true,
+    isEmailVerified: true,
+    isPhoneVerified: true,
     isActive: true,
     createdAt: true,
     updatedAt: true,
