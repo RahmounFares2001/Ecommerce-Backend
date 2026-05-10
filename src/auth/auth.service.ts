@@ -15,6 +15,7 @@ import { verifyEmailTemplate } from 'src/mail/templates/verify-email.template';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { resetPasswordTemplate } from 'src/mail/templates/reset-password.template';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { JwtPayloadType } from 'src/common/types/jwt-payload.type';
 
 @Injectable()
 export class AuthService {
@@ -147,28 +148,25 @@ export class AuthService {
     }
 
     // refresh tokens
-    async refreshToken( oldRefreshToken: string ): Promise<AuthResponseDto> {
-        
-        // get sessionId
-        const payload = this.jwtService.verify(oldRefreshToken);
-        const sessionId = payload.sid;
+    async refreshToken(jwtPayload: JwtPayloadType): Promise<AuthResponseDto> {
+        const userId = jwtPayload.id;
+        const sessionId = jwtPayload.sid
 
-        // find user
-        const userId = payload.sub
+        // generate tokens
+        const {accessToken, refreshToken} = await this.generateTokens(userId, jwtPayload.email);
+        
+        // update refresh token in db
+        await this.updateRefreshToken(sessionId ,refreshToken);
+
+        // get user data
         const user = await this.prisma.user.findUnique({
-            where: {id: userId},
+            where: { id: jwtPayload.id },
             select: userBaseSelect
         });
 
         if(!user) {
             throw new NotFoundException('User not found');
         }
-
-        // generate tokens
-        const {accessToken, refreshToken} = await this.generateTokens(user.id, user.email);
-        
-        // update refresh token in db
-        await this.updateRefreshToken(sessionId ,refreshToken);
 
         return {
             refreshToken,
@@ -179,11 +177,7 @@ export class AuthService {
 
 
     // logout
-    async logout(refreshToken: string): Promise<void> {
-        const payload = await this.jwtService.verify(refreshToken);
-
-        const sessionId = payload.sid;
-
+    async logout(sessionId: string): Promise<void> {
         await this.prisma.userSession.delete({
             where: {id: sessionId},
         })

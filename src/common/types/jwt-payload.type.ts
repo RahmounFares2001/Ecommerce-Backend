@@ -1,9 +1,5 @@
-export type JwtPayload = {
+export type JwtPayloadType = {
     id: string;
     email: string;
-    firstName: string | null;
-    lastName: string | null;
-    phone:  string | null;
-    createdAt: Date;
-    updatedAt: Date;
+    sid: string;
 };

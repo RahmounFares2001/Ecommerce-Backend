@@ -1,17 +1,17 @@
-import { Body, Controller, Patch, Post, Query, Req, Res, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Patch, Post, Query, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiOperation } from '@nestjs/swagger';
 import { RegisterDto } from './dto/register.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import type { Request, Response } from 'express';
 import { getSessionMeta } from 'src/common/utils/session.meta.util';
-import { RefreshToken } from 'src/common/decorators/refresh-token.decorator';
 import { setRefreshTokenCookies } from 'src/common/helpers/set-refresh-token-cookies';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { RefreshTokenGuard } from './guards/refresh-token.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -71,12 +71,14 @@ export class AuthController {
 
   // logout
   @Post('logout')
+  @UseGuards(RefreshTokenGuard)
   @ApiOperation({summary: 'Logout user'})
   async logout(
-    @RefreshToken() refreshToken: string,
+    @Req() req: any,
     @Res({passthrough: true}) res: Response
   ) {
-    await this.authService.logout(refreshToken);
+    const sessionId = req.user.sid;
+    await this.authService.logout(sessionId);
 
     // clear cookies
     res.clearCookie('refreshToken');
@@ -86,13 +88,15 @@ export class AuthController {
 
   // refresh access token
   @Post('refresh-token')
+  @UseGuards(RefreshTokenGuard)
   @ApiOperation({summary: 'Refresh user token'})
   async refreshToken(
-    @RefreshToken() oldRefreshToken: string,
+    @Req() req: any,
     @Res({passthrough: true}) res: Response
   ): Promise<AuthResponseDto> {
-    
-    const result = await this.authService.refreshToken(oldRefreshToken);
+
+    const jwtPayload = req.user;
+    const result = await this.authService.refreshToken(jwtPayload);
 
     // store refresh token cookies
     setRefreshTokenCookies(res, result.refreshToken);
