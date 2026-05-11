@@ -1,5 +1,5 @@
 import { Exclude, Expose, Type } from 'class-transformer';
-import { AddressResponseDto } from 'src/addresses/dto/address.dto';
+import { AddressResponseDto } from 'src/addresses/dto/address-response.dto';
 
 export class UserResponseDto {
   @Expose()
