@@ -50,7 +50,8 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'jwt-refres
             where: {id: payload.sub},
             select: {
                 id: true,
-                email: true
+                email: true,
+                role: true
             }
         });
         
@@ -81,6 +82,7 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'jwt-refres
             sid: payload.sid,
             id: user.id,
             email: user.email,
+            role: user.role
         }        
 
     }

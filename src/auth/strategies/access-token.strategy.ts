@@ -25,7 +25,8 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy) {
             where: { id : payload.sub },
             select: {
                 id: true,
-                email: true
+                email: true,
+                role: true
             }
         });
 
