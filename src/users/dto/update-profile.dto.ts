@@ -1,7 +1,7 @@
 import { IsOptional, IsString, IsEmail, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-export class UpdateUserDto {
+export class UpdateProfileDto {
   @IsOptional()
   @IsEmail()
   @Transform(({ value }) => value?.toLowerCase().trim())

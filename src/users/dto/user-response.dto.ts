@@ -33,7 +33,11 @@ export class UserResponseDto {
   createdAt!: Date;
 
   @Expose()
-  updatedAt!: Date;
+  updatedAt?: Date;
+
+
+  @Expose()
+  deletedAt?: Date | null;
 
   @Expose()
   @Type(() => AddressResponseDto)

@@ -91,6 +91,9 @@ model User {
   firstName    String?   @map("first_name") @db.VarChar(100)
   lastName     String?   @map("last_name") @db.VarChar(100)
   phone        String?   @db.VarChar(30)
+  avatarUrl    String? @map("avatar_url") @db.Text
+  avatarPublicId String? @map("avatar_public_id") @db.Text
+
 
   preferredCurrency   SupportedCurrency @default(DZD) @map("preferred_currency")
   preferredLocale     SupportedLocale   @default(ar_DZ) @map("preferred_locale")
@@ -101,6 +104,7 @@ model User {
   isPhoneVerified Boolean @default(false) @map("is_phone_verified")
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz()
 
   addresses       Address[]
   carts           Cart[]

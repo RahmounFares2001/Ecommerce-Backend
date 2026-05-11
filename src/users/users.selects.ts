@@ -12,4 +12,5 @@ export const userBaseSelect = {
     isActive: true,
     createdAt: true,
     updatedAt: true,
+    deletedAt: true,
 } as const;
