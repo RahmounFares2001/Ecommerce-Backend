@@ -77,6 +77,8 @@ export class AuthController {
     @Res({passthrough: true}) res: Response
   ) {
     const sessionId = req.user.sid;
+
+    
     await this.authService.logout(sessionId);
 
     // clear cookies

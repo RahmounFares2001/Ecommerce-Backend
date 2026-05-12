@@ -4,7 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UserResponseDto } from './dto/user-response.dto';
 import { userBaseSelect } from './users.selects';
 import { toDto } from 'src/common/utils/to-dto.util';
-import { UploadService } from 'src/common/upload/upload.service';
+import { UploadService } from 'src/upload/upload.service';
 
 @Injectable()
 export class UsersService {

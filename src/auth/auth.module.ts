@@ -4,6 +4,9 @@ import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { MailModule } from 'src/mail/mail.module';
 import { ConfigService } from '@nestjs/config';
+import { PassportModule } from '@nestjs/passport';
+import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
+import { AccessTokenStrategy } from './strategies/access-token.strategy';
 
 @Module({
   imports: [
@@ -14,9 +17,14 @@ import { ConfigService } from '@nestjs/config';
         signOptions: { expiresIn: Number(configService.get<number>('JWT_EXPIRES_IN')) || '900'}
       })
     }),
+    PassportModule,
     MailModule
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [
+    AuthService,
+    RefreshTokenStrategy,
+    AccessTokenStrategy
+  ],
 })
 export class AuthModule {}

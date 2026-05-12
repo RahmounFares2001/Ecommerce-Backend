@@ -17,12 +17,18 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'jwt-refres
     ) {
 
         super({
-            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+            jwtFromRequest: (req: Request) => {
+              return req?.cookies?.refreshToken;
+            },
+      
             ignoreExpiration: false,
-            secretOrKey: configService.get<string>('JWT-REFRESH-SECRET') || 'jwt-refresh2026',
-            // allows validate to receive the full request object
-            passReqToCallback: true
-        })
+      
+            secretOrKey:
+              configService.get<string>('JWT_SECRET') ||
+              'secret',
+      
+            passReqToCallback: true,
+          });
     }
 
     // validate 
@@ -31,19 +37,10 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'jwt-refres
         payload: { sub: string, email: string, sid: string }) {
             
         console.log('RefreshTokenStrategy.validate called');
+        const refreshToken = req?.cookies?.refreshToken;
 
-        const authHeader = req.headers.authorization;
-        if(!authHeader) {
-            console.log('No authorization header found');
-            throw new UnauthorizedException('Refresh token not provided');
-        }
-
-        const refreshToken = authHeader.replace('Bear ', '').trim();
-        if(!refreshToken) {
-            console.log('No authorization header found');
-            throw new UnauthorizedException(
-                'Refresh token is empty after extraction'
-            );
+        if (!refreshToken) {
+          throw new UnauthorizedException('Refresh token not provided');
         }
 
         const user = await this.prisma.user.findUnique({

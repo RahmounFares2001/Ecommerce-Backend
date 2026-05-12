@@ -7,6 +7,9 @@ import { UsersModule } from './users/users.module';
 import { AddressesModule } from './addresses/addresses.module';
 import { AuthModule } from './auth/auth.module';
 import { MailModule } from './mail/mail.module';
+import { UploadService } from './upload/upload.service';
+import { UploadModule } from './upload/upload.module';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -18,8 +21,10 @@ import { MailModule } from './mail/mail.module';
     UsersModule,
     AddressesModule,
     AuthModule,
-    MailModule],
+    MailModule,
+    UploadModule,
+    CategoryModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, UploadService],
 })
 export class AppModule {}

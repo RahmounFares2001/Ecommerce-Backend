@@ -1,6 +1,10 @@
 import { plainToInstance, ClassConstructor } from 'class-transformer';
 
-export function toDto<T>(cls: ClassConstructor<T>, raw: object): T {
+// Overload signatures
+export function toDto<T>(cls: ClassConstructor<T>, raw: object[]): T[];
+export function toDto<T>(cls: ClassConstructor<T>, raw: object): T;
+
+export function toDto<T>(cls: ClassConstructor<T>, raw: object | object[]): T | T[] {
   return plainToInstance(cls, raw, {
     excludeExtraneousValues: true,
   });

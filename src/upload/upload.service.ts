@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import cloudinary from '../config/cloudinary/cloudinary.config';
+import cloudinary from 'src/common/config/cloudinary/cloudinary.config';
 
 @Injectable()
 export class UploadService {
