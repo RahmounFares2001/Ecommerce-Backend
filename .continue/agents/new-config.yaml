@@ -1,0 +1,13 @@
+models:
+  - name: Qwen 7B Chat
+    provider: ollama
+    model: qwen2.5-coder:7b
+
+tabAutocompleteModel:
+  name: Qwen 1.5B Autocomplete
+  provider: ollama
+  model: qwen2.5-coder:1.5b
+
+embeddingsProvider:
+  provider: ollama
+  model: qwen2.5-coder:1.5b

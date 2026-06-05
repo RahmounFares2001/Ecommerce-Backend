@@ -8,6 +8,10 @@ export class BaseQueryDto {
     search?: string;
 
     @IsOptional()
+    @IsString()
+    sort?: string;
+
+    @IsOptional()
     @Type(()=> Number)
     @IsInt()
     @Min(1)

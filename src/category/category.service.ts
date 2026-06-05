@@ -25,9 +25,6 @@ export class CategoryService {
     async getAllCategories(): Promise<CategoryResponseDto[]> {
         const categories = await this.prisma.category.findMany({});
         
-        if(categories.length === 0) {
-            throw new NotFoundException('There is no categories');
-        }
         return toDto(CategoryResponseDto, categories);    
     }
 
@@ -51,7 +48,7 @@ export class CategoryService {
         });
 
         if(!category) {
-            throw new NotFoundException('There is no categories');
+            throw new NotFoundException('Category not found');
         }
 
         return toDto(CategoryResponseDto, category);
@@ -63,9 +60,6 @@ export class CategoryService {
             where: { parent: null }
         });
 
-        if(rootCategories.length === 0) {
-            throw new NotFoundException('There is no root categories');
-        }
         return toDto(CategoryResponseDto, rootCategories);
     }
 
@@ -75,9 +69,7 @@ export class CategoryService {
             where: { parentId: id },
         });
 
-        if(children.length === 0) {
-            throw new NotFoundException('There is no children');
-        }
+
         return toDto(CategoryResponseDto, children);
     }
 

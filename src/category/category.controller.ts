@@ -9,8 +9,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Role } from 'src/common/enums/role.enum';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
-@UseGuards(AccessTokenGuard, RolesGuard)
-@Roles(Role.Admin)
+
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {
@@ -19,6 +18,8 @@ export class CategoryController {
 
   // create category
   @Post()
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles(Role.Admin)
   @ApiOperation({summary: 'Create new category'})
   async createCategory(
     @Body() createCategoryDto: CreateCategoryDto): Promise<CategoryResponseDto> {
@@ -61,6 +62,8 @@ export class CategoryController {
 
   // update category
   @Patch(":id")
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles(Role.Admin)
   @ApiOperation({summary: 'Update category'})
   async updateCategory(
     @Body() updateCategoryDto: UpdateCategoryDto,
@@ -70,6 +73,8 @@ export class CategoryController {
 
   // activate category
   @Patch(":id/activate")
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles(Role.Admin)
   @ApiOperation({summary: 'Update category'})
   async activateCategory(
     @Param('id') id: string): Promise<CategoryResponseDto> {
@@ -78,6 +83,8 @@ export class CategoryController {
 
   // disactivate category
   @Patch(":id/disactivate")
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles(Role.Admin)
   @ApiOperation({summary: 'Update category'})
   async disactivateCategory(
     @Param('id') id: string): Promise<CategoryResponseDto> {
@@ -86,6 +93,8 @@ export class CategoryController {
 
   // delete category
   @Delete(":id")
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles(Role.Admin)
   @ApiOperation({summary: 'Get category'})
   async deleteCategory(@Param('id') id: string) {
     return await this.categoryService.deleteCategory(id);

@@ -10,6 +10,10 @@ import { MailModule } from './mail/mail.module';
 import { UploadService } from './upload/upload.service';
 import { UploadModule } from './upload/upload.module';
 import { CategoryModule } from './category/category.module';
+import { ProductModule } from './product/product.module';
+import { ProductImageModule } from './product-image/product-image.module';
+import { ProductVariantModule } from './product-variant/product-variant.module';
+import { ReviewModule } from './review/review.module';
 
 @Module({
   imports: [
@@ -23,7 +27,11 @@ import { CategoryModule } from './category/category.module';
     AuthModule,
     MailModule,
     UploadModule,
-    CategoryModule],
+    CategoryModule,
+    ProductModule,
+    ProductImageModule,
+    ProductVariantModule,
+    ReviewModule],
   controllers: [AppController],
   providers: [AppService, UploadService],
 })
