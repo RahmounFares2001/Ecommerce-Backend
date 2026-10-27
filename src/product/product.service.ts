@@ -6,6 +6,7 @@ import { ProductQueryDto } from './dto/product-query.dto';
 import { Prisma } from '@prisma/client';
 import { ReviewResponseDto } from 'src/review/dto/review-response.dto';
 import { ReviewQuery } from 'src/common/dto/review-query';
+import { contains } from 'class-validator';
 
 @Injectable()
 export class ProductService {
@@ -13,33 +14,42 @@ export class ProductService {
         private prisma: PrismaService
     ) {}
 
+    // build product filters
+    private buildProductFilters(query: ProductQueryDto): Prisma.ProductWhereInput {
+      const { search, categoryId, activeOnly = true } = query;
+    
+      const filters: Prisma.ProductWhereInput = {
+        isActive: activeOnly,
+      };
+    
+      if (categoryId) {
+        filters.categoryId = categoryId;
+      }
+    
+      if (search) {
+        filters.OR = [
+          { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+          { slug: { contains: search, mode: Prisma.QueryMode.insensitive } },
+          { description: { contains: search, mode: Prisma.QueryMode.insensitive } },
+        ];
+      }
+    
+      return filters;
+    }
+
     // get all products
-    async getALlProducts(query: ProductQueryDto): 
+    async getAllProducts(query: ProductQueryDto): 
         Promise<{
             data: ProductResponseDto[];
             total: Number;
             pages: Number
         }> {
         
-        const {search, page = 1, limit = 10, categoryId, activeOnly = true} = query;
+        const {page = 1, limit = 10} = query;
         const skip = (page - 1)*limit;
 
         // filters
-        const filters: Prisma.ProductWhereInput = {}
-
-        filters.isActive = activeOnly;
-
-        if(categoryId) {
-            filters.categoryId = categoryId;
-        }
-
-        if(search) {
-            filters.OR =  [
-                { name: { contains: search, mode: Prisma.QueryMode.insensitive} },
-                { slug: { contains: search, mode: Prisma.QueryMode.insensitive} },
-                { description: { contains: search, mode: Prisma.QueryMode.insensitive} }
-            ]
-        }
+        const filters = this.buildProductFilters(query);
       
         // find Product, count all
         const [products, total] = await Promise.all([
@@ -124,10 +134,9 @@ export class ProductService {
         return toDto(ReviewResponseDto, reviews);
     }
 
-
     // get related products
     async getRelatedProducts(productId: string): Promise<ProductResponseDto[]> {
-        // get base product
+        // 1. Get base product with variant price
         const product = await this.prisma.product.findUnique({
             where: { id: productId },
             select: {
@@ -136,91 +145,118 @@ export class ProductService {
                 variants: {
                     select: {
                         price: true,
-                    }
-                }
-            }
+                    },
+                    take: 1,
+                },
+            },
         });
 
-        if(!product) {
+        if (!product) {
             throw new NotFoundException('Product not found');
         }
 
-        // get condidates
-        const condidates = await this.prisma.product.findMany({
+        const basePrice = Number(product.variants[0]?.price ?? 0);
+
+        // 2. Fetch candidates matching category
+        const candidates = await this.prisma.product.findMany({
             where: {
                 id: { not: productId },
                 isActive: true,
-                categoryId: product.categoryId
+                categoryId: product.categoryId,
             },
-            select: {
-                id: true,
-                name: true,
-                slug: true,
-                price: true,
-                categoryId: true,
-                createdAt: true,
-                updatedAt: true,
+            include: {
                 images: {
                     where: { isPrimary: true },
                     take: 1,
-                    select: { 
-                        url: true,
-                        altText: true
-                    }
-                }, 
+                },
                 variants: {
-                    select: {
-                        price: true
-                    }
-                }
+                    where: { isActive: true },
+                },
             },
-            take: 200
-        })
+            take: 200,
+        });
 
-
-        // ranking
-        const scored = condidates.map((p) => {
+        // 3. Score candidates
+        const scored = candidates.map((p) => {
             let score = 0;
 
-            // category match
-            if(p.categoryId === product.categoryId) {
-                score+= 50;
-            };
+            // Category match
+            if (p.categoryId === product.categoryId) {
+                score += 50;
+            }
 
-            // price
-            const priceDiff = Math.abs(Number(product.variants[0]) - Number(p.variants[0]));
-            const priceRatio = priceDiff / Number(product.variants[0]);
+            // Price comparison (using candidate variant price)
+            const candidatePrice = Number(p.variants[0]?.price ?? 0);
+            if (basePrice > 0) {
+                const priceDiff = Math.abs(basePrice - candidatePrice);
+                const priceRatio = priceDiff / basePrice;
 
-            if(priceRatio <= 0.2) {
-                score+= 20;
-            };
+                if (priceRatio <= 0.2) {
+                    score += 20;
+                }
+            }
 
-            // recent products
-            const daysOld = (Date.now() - new Date(p.createdAt).getTime());
-
-            if(daysOld < 30) {
+            // Recency calculation (convert ms to days)
+            const daysOld = (Date.now() - new Date(p.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+            if (daysOld < 30) {
                 score += 5;
-            };
+            }
 
             return {
                 ...p,
-                score
-            }
+                score,
+            };
         });
 
-        // sort by relevent score
-        const ranked = scored.sort((a,b) => b.score - a.score);
+        // 4. Sort by score and transform top 12
+        const ranked = scored.sort((a, b) => b.score - a.score);
 
-        const result = ranked.slice(0, 12).map((p) => ({
-            id: p.id,
-            name: p.name,
-            slug: p.slug,
-            price: p.price,
-            images: p.images,
-        }));
+        return toDto(ProductResponseDto, ranked.slice(0, 12));
+    }
 
+    // get featured products
+    async getFeaturedProducts(query: ProductQueryDto)
+    : Promise<{
+        data: ProductResponseDto[],
+            total: Number,
+            pages: Number }> {
 
-        return toDto(ProductResponseDto, result)
+        const {page = 1, limit = 10} = query;
+        const skip = ( page-1 )*limit;
+
+        // filters
+        const filters = this.buildProductFilters(query);
+
+        
+
+        const [products, total] = await Promise.all([
+
+            this.prisma.product.findMany({
+                where: filters,
+                take: limit,
+                skip,
+                orderBy: { createdAt: 'desc'},
+
+                include: {
+                    images: {
+                        where: { isPrimary: true },
+                        take: 1
+                    },
+                    variants: {
+                        where: { isActive: true }
+                    }
+                }
+
+            }),
+
+            this.prisma.product.count({ where: filters })
+        ])
+
+        return {
+            data: toDto(ProductResponseDto, products),
+            total,
+            pages: Math.ceil(total/limit)
+        }
     }
 
 }

@@ -14,6 +14,19 @@ import { ProductModule } from './product/product.module';
 import { ProductImageModule } from './product-image/product-image.module';
 import { ProductVariantModule } from './product-variant/product-variant.module';
 import { ReviewModule } from './review/review.module';
+import { CartModule } from './cart/cart.module';
+import { CartItemModule } from './cart-item/cart-item.module';
+import { OrderModule } from './order/order.module';
+import { OrderItemModule } from './order-item/order-item.module';
+import { OrderStatusHistoryModule } from './order-status-history/order-status-history.module';
+import { ShippingMethodModule } from './shipping-method/shipping-method.module';
+import { DiscountCodeModule } from './discount-code/discount-code.module';
+import { ReturnModule } from './return/return.module';
+import { ReturnItemModule } from './return-item/return-item.module';
+import { WishListItemModule } from './wish-list-item/wish-list-item.module';
+import { AuditLogModule } from './audit-log/audit-log.module';
+import { NotificationModule } from './notification/notification.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -31,7 +44,20 @@ import { ReviewModule } from './review/review.module';
     ProductModule,
     ProductImageModule,
     ProductVariantModule,
-    ReviewModule],
+    ReviewModule,
+    CartModule,
+    CartItemModule,
+    OrderModule,
+    OrderItemModule,
+    OrderStatusHistoryModule,
+    ShippingMethodModule,
+    DiscountCodeModule,
+    ReturnModule,
+    ReturnItemModule,
+    WishListItemModule,
+    AuditLogModule,
+    NotificationModule,
+    RedisModule],
   controllers: [AppController],
   providers: [AppService, UploadService],
 })

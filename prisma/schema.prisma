@@ -94,7 +94,6 @@ model User {
   avatarUrl    String? @map("avatar_url") @db.Text
   avatarPublicId String? @map("avatar_public_id") @db.Text
 
-
   preferredCurrency   SupportedCurrency @default(DZD) @map("preferred_currency")
   preferredLocale     SupportedLocale   @default(ar_DZ) @map("preferred_locale")
 
@@ -202,6 +201,7 @@ model Product {
   slug        String           @unique @db.VarChar(255)
   description String?          @db.Text
   isActive    Boolean          @default(true) @map("is_active")
+  isFeatured  Boolean          @default(false) @map("is_featured")
   createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt   DateTime         @updatedAt @map("updated_at") @db.Timestamptz()
 
@@ -300,7 +300,7 @@ model Order {
   currency          SupportedCurrency @default(DZD)
   exchangeRate      Decimal           @default(1) @map("exchange_rate") @db.Decimal(12, 6)
 
-  orderNumber       String        @unique @map("order_number") @db.VarChar(30) // ORD-2026-000145
+  orderNumber       String        @unique @map("order_number") @db.VarChar(30) // ORD-2026-000145 ORD-YYYY-NNNNNN
   status            OrderStatus   @default(pending)
 
   // COD tracking
@@ -385,7 +385,7 @@ model ShippingMethod {
 // DISCOUNTS
 model DiscountCode {
   id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code           String       @unique @db.VarChar(50)
+  code           String       @unique @db.VarChar(50) // upper case
   description    String?      @db.VarChar(255)
   discountType   DiscountType @map("discount_type")
   discountValue  Decimal      @map("discount_value") @db.Decimal(10, 2)
@@ -415,9 +415,9 @@ model Review {
   id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   productId   String     @map("product_id") @db.Uuid
 
-  userId      String     @map("user_id") @db.Uuid  // required — no anonymous reviews
+  userId      String     @map("user_id") @db.Uuid  // required no anonymous reviews
   orderItemId String?    @unique @map("order_item_id") @db.Uuid
-  rating      Int        @db.SmallInt              // 1–5, enforce in app layer
+  rating      Int        @db.SmallInt              // 1–5
   comment     String?    @db.Text
   isApproved  Boolean    @default(false) @map("is_approved")
   createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz()

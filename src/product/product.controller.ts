@@ -20,8 +20,16 @@ export class ProductController {
         total: Number;
         pages: Number
       }> {
-    return await this.productService.getALlProducts(baseQuery);
+    return await this.productService.getAllProducts(baseQuery);
   }
+
+  // get product by slug
+  @Get('slug/:slug')
+  @ApiOperation({summary: 'Get all products with variants and images'})
+  async getProductBySlug(@Param('slug') slug: string): Promise<ProductResponseDto> {
+    return await this.productService.getProductBySlug(slug);
+  }
+
 
   // get product by id
   @Get(':id')
@@ -30,12 +38,6 @@ export class ProductController {
     return await this.productService.getProductById(id);
   }
 
-  // get product by id
-  @Get('slug/:slug')
-  @ApiOperation({summary: 'Get all products with variants and images'})
-  async getProductBySlug(@Param('slug') slug: string): Promise<ProductResponseDto> {
-    return await this.productService.getProductById(slug);
-  }
 
   // get reviews of a product
   @Get(':id/reviews')
@@ -46,7 +48,8 @@ export class ProductController {
     return await this.productService.getProductReviews(productId, reviewQuery);
   }
 
-  // controler related products
+  
+  // related products
   @Get(':id/related')
   @ApiOperation({summary: 'Get related products'})
   async getRelatedProducts(
@@ -54,10 +57,19 @@ export class ProductController {
   ): Promise<ProductResponseDto[]> {
     return await this.productService.getRelatedProducts(productId);
   }
-
-
-
   
+  // featured products
+  @Get('featured')
+  @ApiOperation({summary: 'Get featued products'})
+  async getFeaturedProducts(
+    @Query() baseQuery: ProductQueryDto
+  ): Promise<{
+      data: ProductResponseDto[],  
+      total: Number;
+      pages: Number } > {
+    return await this.productService.getFeaturedProducts(baseQuery);
+  }
+
 
   
 }
